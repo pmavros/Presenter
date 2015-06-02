@@ -4,6 +4,11 @@ import android.app.Application;
 
 import java.io.File;
 
+/**
+ * Created by Panos on 02/06/2015.
+ */
+
+
 public class Presenter
         extends Application
 {

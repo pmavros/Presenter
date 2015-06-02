@@ -3,29 +3,82 @@ package org.urbancortex.presenter;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.view.Menu;
-
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
 import java.io.File;
 
 import static android.os.SystemClock.elapsedRealtime;
 
-public class MainActivity
-        extends Activity
-{
+
+public class MainActivity extends Activity {
+
     public static final String EXTRA_MESSAGE = "org.urbancortex.presenter.MESSAGE";
     protected static boolean exit = false;
     private File fileWriteDirectory;
 
-    public MainActivity() {}
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // start GPS service
+        new locations(this, locations.ProviderType.GPS).start();
+
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    protected void onStart()
+    {
+        if (exit) {
+            finish();
+        }
+        super.onStart();
+    }
+
+    protected void onResume()
+    {
+        super.onResume();
+        if (!Presenter.isRecording) {
+            ((Button)findViewById(R.id.cont)).setVisibility(View.INVISIBLE);
+        } else if (Presenter.isRecording) {
+            ((Button)findViewById(R.id.cont)).setVisibility(View.VISIBLE);
+        }
+
+        if (readWriteSettings.foldersReadyToReadWrite()) {
+            readWriteSettings.loadEventSettings();
+        }
+
+    }
 
     /** Called when the user clicks the Send button */
     public void continueExperiment(View view) {
@@ -126,47 +179,5 @@ public class MainActivity
         Presenter.startMillis = elapsedRealtime();
         Presenter.startTime = System.currentTimeMillis();
         startService(intent);
-    }
-
-    protected void onCreate(Bundle paramBundle)
-    {
-        super.onCreate(paramBundle);
-        setContentView(R.layout.activity_main);
-        new locations(this, locations.ProviderType.GPS).start();
-    }
-
-    public boolean onCreateOptionsMenu(Menu paramMenu)
-    {
-        getMenuInflater().inflate(R.menu.menu_main, paramMenu);
-        return true;
-    }
-
-    public boolean onOptionsItemSelected(MenuItem paramMenuItem)
-    {
-
-        return super.onOptionsItemSelected(paramMenuItem);
-    }
-
-    protected void onResume()
-    {
-        super.onResume();
-        if (!Presenter.isRecording) {
-            ((Button)findViewById(R.id.cont)).setVisibility(View.INVISIBLE);
-        } else if (Presenter.isRecording) {
-            ((Button)findViewById(R.id.cont)).setVisibility(View.VISIBLE);
-        }
-
-        if (readWriteSettings.foldersReadyToReadWrite()) {
-            readWriteSettings.loadEventSettings();
-        }
-
-    }
-
-    protected void onStart()
-    {
-        if (exit) {
-            finish();
-        }
-        super.onStart();
     }
 }

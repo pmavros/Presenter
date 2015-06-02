@@ -1,5 +1,9 @@
 package org.urbancortex.presenter;
 
+/**
+ * Created by Panos on 02/06/2015.
+ */
+
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -7,6 +11,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.text.format.Time;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -15,8 +20,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
+
 import static android.os.SystemClock.elapsedRealtime;
-import static org.urbancortex.presenter.Presenter.*;
+import static org.urbancortex.presenter.Presenter.isRecording;
+import static org.urbancortex.presenter.Presenter.startMillis;
+import static org.urbancortex.presenter.Presenter.startTime;
 
 public class csv_logger extends Service {
 

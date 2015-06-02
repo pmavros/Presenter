@@ -2,7 +2,6 @@ package org.urbancortex.presenter;
 
 import android.app.Activity;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
@@ -19,16 +18,20 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import static org.urbancortex.presenter.Presenter.*;
 
-public class Presentation
-        extends Activity
-{
+import static org.urbancortex.presenter.Presenter.experimentEvents;
+import static org.urbancortex.presenter.Presenter.imgDirectory;
+import static org.urbancortex.presenter.Presenter.index;
+
+
+public class Presentation extends Activity {
+
     private static boolean clickable = true;
     public static int counter = 0;
     public static int frame = 0;
@@ -40,6 +43,14 @@ public class Presentation
     private ImageView imageView;
     int lastIndex = 0;
     boolean mBound = false;
+    private Handler mHandler;
+    csv_logger mService;
+    private int mTimeElapsedDisplayInterval = 1000;
+    private String participantID;
+    TextView textViewDescription;
+    TextView textViewTitle;
+    private Vibrator v;
+
     ServiceConnection mConnection = new ServiceConnection()
     {
         public void onServiceConnected(ComponentName paramAnonymousComponentName, IBinder paramAnonymousIBinder)
@@ -56,35 +67,24 @@ public class Presentation
             System.out.println("Service is disconnected");
         }
     };
-    private Handler mHandler;
-    csv_logger mService;
-    private int mTimeElapsedDisplayInterval = 1000;
-    private String participantID;
-    TextView textViewDescription;
-    TextView textViewTitle;
-    private Vibrator v;
-
-    public Presentation() {}
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
-        System.out.println("onCreate");
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_presentation);
+        System.out.println("onCreate");
 
         // Get the message from the intent
         participantID = getIntent().getStringExtra(MainActivity.EXTRA_MESSAGE);
         bindService(new Intent(this, csv_logger.class), mConnection, 0);
+
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu paramMenu)
-    {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_presentation, paramMenu);
-        System.out.println("onCreateOptionsMenu");
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_presentation, menu);
         return true;
     }
 
@@ -103,11 +103,31 @@ public class Presentation
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
     protected void onStart(){
         super.onStart();
         System.out.println("onStart "+Presenter.experimentEvents.length);
         setupUI();
+    }
+
+    protected void onPause()
+    {
+        System.out.println("onPause");
+        super.onPause();
+    }
+
+    protected void onResume()
+    {
+        System.out.println("onResume");
+        super.onResume();
+
+        setupUI();
+        try {
+            updateUI();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -135,34 +155,12 @@ public class Presentation
         }
     }
 
-    protected void onPause()
-    {
-        System.out.println("onPause");
-        super.onPause();
-    }
-
-    protected void onResume()
-    {
-        System.out.println("onResume");
-        super.onResume();
-
-        setupUI();
-        try {
-            updateUI();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-    }
-
-
     private void renameButtons()
     {
         Button localButton = null;
         for (int i = 0; i < 3; i++)
         {
-           // System.out.println(i);
+            // System.out.println(i);
             //System.out.println("experiment events" + experimentEvents[index].Buttons[i]);
             int id = 1 + i;
             String buttonID = "present_button" + id ;
@@ -185,8 +183,8 @@ public class Presentation
     {
         System.out.println(Presenter.index);
 
-            long d = (long) (2000.0D * Math.random());
-            System.out.println("jitter duration "+d);
+        long d = (long) (2000.0D * Math.random());
+        System.out.println("jitter duration "+d);
 
         try {
             Thread.sleep(d);
@@ -194,25 +192,25 @@ public class Presentation
             e.printStackTrace();
         }
 
-            renameButtons();
+        renameButtons();
 
-            textViewTitle.setText(experimentEvents[index].Title);
-            textViewDescription.setText(experimentEvents[index].Text);
-            String str = imgDirectory.toString() + "/" + experimentEvents[index].Image.replaceAll("\\s+", "");
-            System.out.println(str);
-            Bitmap localBitmap = BitmapFactory.decodeFile(str);
-            imageView.setImageBitmap(localBitmap);
-            imageView.invalidate();
+        textViewTitle.setText(experimentEvents[index].Title);
+        textViewDescription.setText(experimentEvents[index].Text);
+        String str = imgDirectory.toString() + "/" + experimentEvents[index].Image.replaceAll("\\s+", "");
+        System.out.println(str);
+        Bitmap localBitmap = BitmapFactory.decodeFile(str);
+        imageView.setImageBitmap(localBitmap);
+        imageView.invalidate();
 
-            if (Presenter.index != lastIndex)
-            {
-                updateUITime = SystemClock.elapsedRealtime();
-                logEvent(experimentEvents[index].Title, "new_stimulus", experimentEvents[index].Code);
-                lastIndex = Presenter.index;
-            }
-            if (btn != null) {
-                btn.setClickable(true);
-            }
+        if (Presenter.index != lastIndex)
+        {
+            updateUITime = SystemClock.elapsedRealtime();
+            logEvent(experimentEvents[index].Title, "new_stimulus", experimentEvents[index].Code);
+            lastIndex = Presenter.index;
+        }
+        if (btn != null) {
+            btn.setClickable(true);
+        }
 
 
 
@@ -266,12 +264,12 @@ public class Presentation
                 updateUI();
             }
             else if (str.equals("Back")) {
-                    loadPreviousEvent();
-                }
+                loadPreviousEvent();
+            }
         } else {
             Toast.makeText(this, "Couldn't record this, press again.", Toast.LENGTH_SHORT).show();
         }
-}
+    }
 
 
 

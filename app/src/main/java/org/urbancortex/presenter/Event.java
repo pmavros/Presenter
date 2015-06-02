@@ -1,6 +1,9 @@
 package org.urbancortex.presenter;
 
-class Event
+/**
+ * Created by Panos on 02/06/2015.
+ */
+public class Event
 {
     protected String[] Buttons;
     protected String Code;

@@ -1,9 +1,14 @@
 package org.urbancortex.presenter;
 
+/**
+ * Created by Panos on 02/06/2015.
+ */
+
 import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Bundle;
 import android.os.Bundle;
 
 public class locations implements LocationListener {

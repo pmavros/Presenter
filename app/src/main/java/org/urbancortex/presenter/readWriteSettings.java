@@ -1,13 +1,20 @@
 package org.urbancortex.presenter;
 
+/**
+ * Created by Panos on 02/06/2015.
+ */
+
 import android.os.Environment;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+
 import static java.lang.System.out;
-import static org.urbancortex.presenter.Presenter.*;
+import static org.urbancortex.presenter.Presenter.fileDirectory;
+import static org.urbancortex.presenter.Presenter.fileWriteDirectory;
+import static org.urbancortex.presenter.Presenter.imgDirectory;
 
 public class readWriteSettings
 {
