@@ -215,7 +215,7 @@ public class csv_logger extends Service {
     public static void createFile(String participantID) throws IOException {
         System.out.println(participantID);
         now.setToNow();
-        outputFileName =  participantID +"_" + now.format("%d.%m.%Y_%H.%M.%S") + "_" + "fieldworker.csv";
+        outputFileName =  participantID +"_" + now.format("%d.%m.%Y_%H.%M.%S") + "_" + "presenter.csv";
         System.out.println(outputFileName);
 
         System.out.println("fileWriteDirectory" + Presenter.fileWriteDirectory);

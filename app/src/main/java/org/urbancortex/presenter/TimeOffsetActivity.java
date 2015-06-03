@@ -47,14 +47,24 @@ public class TimeOffsetActivity extends Activity {
 
             TextView offsetText = (TextView) findViewById(R.id.offset);
             TextView offsetAverageText = (TextView) findViewById(R.id.offsetAverage);
-            int average = getTimeOffset();
+            offsetAverageText.setText("Calculating...");
+
+        int average = getTimeOffset();
 //        offsetText.setText(offset);
+
         offsetAverageText.setText("Offset average is "+average);
 
 
     }
 
     public static int getTimeOffset(){
+        // TODO
+        /*
+        *
+        * What if cannot connect?
+        *
+        *
+        * */
 
 
 
