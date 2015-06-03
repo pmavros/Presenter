@@ -1,7 +1,9 @@
 package org.urbancortex.presenter;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
@@ -11,11 +13,14 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.os.Vibrator;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,17 +29,15 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import static org.urbancortex.presenter.Presenter.experimentEvents;
-import static org.urbancortex.presenter.Presenter.imgDirectory;
-import static org.urbancortex.presenter.Presenter.index;
+import static android.os.SystemClock.elapsedRealtime;
+import static org.urbancortex.presenter.Presenter.*;
 
 
-public class Presentation extends Activity {
+public class Presentation extends Activity  {
 
-    private static boolean clickable = true;
-    public static int counter = 0;
-    public static int frame = 0;
     static long updateUITime;
     Button btn;
     DecimalFormat df = new DecimalFormat("#.#");
@@ -43,13 +46,16 @@ public class Presentation extends Activity {
     private ImageView imageView;
     int lastIndex = 0;
     boolean mBound = false;
-    private Handler mHandler;
     csv_logger mService;
-    private int mTimeElapsedDisplayInterval = 1000;
-    private String participantID;
     TextView textViewDescription;
     TextView textViewTitle;
     private Vibrator v;
+    boolean isPressed = true;
+    private Button startBtn;
+    private Button stopBtn;
+    long startShowingMap = 0;
+
+
 
     ServiceConnection mConnection = new ServiceConnection()
     {
@@ -67,6 +73,7 @@ public class Presentation extends Activity {
             System.out.println("Service is disconnected");
         }
     };
+    private String participantID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +86,6 @@ public class Presentation extends Activity {
         bindService(new Intent(this, csv_logger.class), mConnection, 0);
 
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -155,26 +161,44 @@ public class Presentation extends Activity {
         }
     }
 
-    private void renameButtons()
-    {
-        Button localButton = null;
-        for (int i = 0; i < 3; i++)
-        {
-            // System.out.println(i);
-            //System.out.println("experiment events" + experimentEvents[index].Buttons[i]);
-            int id = 1 + i;
-            String buttonID = "present_button" + id ;
-//            System.out.println(buttonID);
-            int layoutID = getResources().getIdentifier(buttonID, "id",  getPackageName());
-            localButton = (Button) findViewById(layoutID);
+    private long mLastClickTime = 0;
 
-            if (!experimentEvents[index].Buttons[i].equals("NA") && localButton!=null){
-                localButton.setText(experimentEvents[index].Buttons[i]);
-                localButton.setEnabled(true);
-            } else if (localButton!=null){
+    private void renameButtons(boolean enable)
+    {
+        if(enable) {
+            Button localButton = null;
+            for (int i = 0; i < 3; i++) {
+                // System.out.println(i);
+                //System.out.println("experiment events" + experimentEvents[index].Buttons[i]);
+                int id = 1 + i;
+                String buttonID = "present_button" + id;
+//            System.out.println(buttonID);
+                int layoutID = getResources().getIdentifier(buttonID, "id", getPackageName());
+                localButton = (Button) findViewById(layoutID);
+
+                if (!experimentEvents[index].Buttons[i].equals("NA") && localButton != null) {
+                    localButton.setText(experimentEvents[index].Buttons[i]);
+                    localButton.setEnabled(true);
+                } else if (localButton != null) {
+                    localButton.setText(" ");
+                    localButton.setEnabled(false);
+                }
+            }
+
+            alertActive = true;
+
+        } else {
+            for (int i = 0; i < 3; i++) {
+               int id = 1 + i;
+                String buttonID = "present_button" + id;
+                int layoutID = getResources().getIdentifier(buttonID, "id", getPackageName());
+                Button localButton = (Button) findViewById(layoutID);
+
                 localButton.setText(" ");
                 localButton.setEnabled(false);
+
             }
+
         }
     }
 
@@ -182,17 +206,7 @@ public class Presentation extends Activity {
             throws IOException, ParseException
     {
         System.out.println(Presenter.index);
-
-        long d = (long) (2000.0D * Math.random());
-        System.out.println("jitter duration "+d);
-
-        try {
-            Thread.sleep(d);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        renameButtons();
+        renameButtons(true);
 
         textViewTitle.setText(experimentEvents[index].Title);
         textViewDescription.setText(experimentEvents[index].Text);
@@ -205,7 +219,7 @@ public class Presentation extends Activity {
         if (Presenter.index != lastIndex)
         {
             updateUITime = SystemClock.elapsedRealtime();
-            logEvent(experimentEvents[index].Title, "new_stimulus", experimentEvents[index].Code);
+            logEvent(experimentEvents[index].Title, "new_stimulus", experimentEvents[index].Code, elapsedRealtime());
             lastIndex = Presenter.index;
         }
         if (btn != null) {
@@ -220,9 +234,17 @@ public class Presentation extends Activity {
         System.out.println( "loadNextEvent " ) ;
         if (Presenter.index < (Presenter.experimentEvents.length - 1)) {
             Presenter.index++;
+
+           try {
+                updateUI();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
         }
     }
-
+    public boolean alertActive = false;
 
     public void loadPreviousEvent()
     {
@@ -231,11 +253,47 @@ public class Presentation extends Activity {
         }
     }
 
-    public boolean logEvent(String eventName, String eventResponse, String eventType)
+    public void setToNeutral()  {
+
+        renameButtons(false);
+
+        textViewTitle.setText("");
+        textViewDescription.setText("");
+        String str = imgDirectory.toString() + "/fixationcross.PNG";
+        System.out.println(str);
+        Bitmap localBitmap = BitmapFactory.decodeFile(str);
+
+        imageView.setImageBitmap(localBitmap);
+        imageView.invalidate();
+
+        long d = (long) (2000.0D * Math.random());
+        System.out.println("jitter duration "+d);
+
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+
+            public void run() {
+                // this code will be executed after 2 seconds
+                Presentation.this.runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        loadNextEvent();
+                    }
+                });
+            }
+
+
+        }, d);
+
+    }
+
+    public boolean logEvent(String eventName, String eventResponse, String eventType, long eventEpoch)
             throws IOException, ParseException
     {
         System.out.println(eventResponse + " " + eventType);
-        long l = SystemClock.elapsedRealtime() - Presenter.startMillis + Presenter.startTime;
+        long l = eventEpoch - Presenter.startMillis + Presenter.startTime;
         String date = formatterDate.format(new Date(l));
         String time = formatterTime.format(new Date(l));
         String event = eventName + ", " + eventResponse.toString() + ", " + eventType + "," + l + ", " + date + ", " + time + ", " + locations.lat + ", " + locations.lon + ", " + locations.speed + ", " + locations.bearing + ", " + locations.elevation + ", " + locations.accuracy;
@@ -250,27 +308,104 @@ public class Presentation extends Activity {
     public void onButtonClick(View view)
             throws IOException, ParseException, InterruptedException
     {
-        btn = ((Button)view);
-        btn.setClickable(false);
-        v.vibrate(20L);
-        String str = ((Button)view).getText().toString();
-        System.out.println(str);
+        if( isPressed) {
 
-        boolean response = logEvent(experimentEvents[index].Title, str, "response");
-        System.out.println("logged " + response);
-        if (response) {
-            if (!str.equals("Back")) {
-                loadNextEvent();
-                updateUI();
+            if (SystemClock.elapsedRealtime() - mLastClickTime < 1000) {
+                return;
             }
-            else if (str.equals("Back")) {
-                loadPreviousEvent();
+            mLastClickTime = SystemClock.elapsedRealtime();
+
+            btn = ((Button) view);
+            btn.setClickable(false);
+            v.vibrate(20L);
+            String str = ((Button) view).getText().toString();
+            System.out.println(str);
+
+            boolean response = logEvent(experimentEvents[index].Title, str, "response", elapsedRealtime());
+            System.out.println("logged " + response);
+            if (response) {
+                if (!str.equals("Back")) {
+                    if (experimentEvents[index].Alert) {
+
+                        new AlertDialog.Builder(this)
+                                .setTitle("New Instruction")
+                                .setMessage("Are you ready to receive the next instruction?")
+                                .setIcon(0)
+                                .setOnKeyListener(new DialogInterface.OnKeyListener() {
+                                    @Override
+                                    public boolean onKey(DialogInterface dialog, int keyCode,
+                                                         KeyEvent event) {
+                                        if(event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP)
+                                            return true;
+                                        return false;
+                                    }
+
+                                })
+                                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // if yes
+                                        setToNeutral();
+
+                                    }
+                                })
+                                .show();
+
+                    } else {
+                        loadNextEvent();
+                        updateUI();
+                    }
+
+                } else if (str.equals("Back")) {
+                    loadPreviousEvent();
+                }
+            } else {
+                Toast.makeText(this, "Couldn't record this, press again.", Toast.LENGTH_SHORT).show();
             }
-        } else {
-            Toast.makeText(this, "Couldn't record this, press again.", Toast.LENGTH_SHORT).show();
         }
+
     }
 
+
+
+//    @Override
+//    public boolean dispatchKeyEvent(KeyEvent event) {
+//        int keyCode = event.getKeyCode();
+//        int action = event.getAction();
+//
+//        LinearLayout mainLayout=(LinearLayout)this.findViewById(R.id.mainLayout);
+//        LinearLayout backLayout=(LinearLayout)this.findViewById(R.id.backgroundLayout);
+//
+//        switch (keyCode) {
+//            case KeyEvent.KEYCODE_VOLUME_UP:
+//                if (action == KeyEvent.ACTION_DOWN && !isPressed && isWalking) {
+//
+//                    isPressed = true;
+//                    startShowingMap  = elapsedRealtime();
+//                    mainLayout.setVisibility(View.VISIBLE);
+//                    backLayout.setVisibility(View.GONE);
+//
+//                } else if (action == KeyEvent.ACTION_UP && isWalking) {
+//                    long mapReadingDuration = elapsedRealtime() - startShowingMap;
+//                    startShowingMap=0;
+//                    mainLayout.setVisibility(View.INVISIBLE);
+//                    backLayout.setVisibility(View.VISIBLE);
+//
+//                    try {
+//                        logEvent("hideMap", String.valueOf(mapReadingDuration), "null", elapsedRealtime());
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    } catch (ParseException e) {
+//                        e.printStackTrace();
+//                    }
+//                    isPressed = false;
+//
+//                }
+//                return true;
+//            default:
+//                return super.dispatchKeyEvent(event);
+//        }
+//
+//    }
 
 
     protected void setupUI()
@@ -279,5 +414,82 @@ public class Presentation extends Activity {
         textViewTitle = ((TextView)findViewById(R.id.title));
         textViewDescription = ((TextView)findViewById(R.id.mainText));
         v = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+    }
+
+    long startWalking = 0;
+
+    public void onTestingClick(View view){
+
+        switch(view.getId())
+        {
+            case R.id.button1:
+                // handle button A click;
+                isWalking = true;
+                startWalking = elapsedRealtime();
+                updateButtonState();
+                try {
+                    logEvent("startRoute", "null", "null", elapsedRealtime());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+
+                break;
+            case R.id.button2:
+                // handle button B click;
+
+                // Confirm this is not accidental
+                new AlertDialog.Builder(this)
+                        .setTitle("Arrived to Destination")
+                        .setMessage("Press to confirm you have arrived at the destination")
+                        .setIcon(0)
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                // continue with
+                                isWalking = false;
+                                updateButtonState();
+                                long stopWalking = elapsedRealtime();
+                                long walkingTime = stopWalking-startWalking;
+
+                                try {
+                                    logEvent("arrived", String.valueOf(walkingTime), "null", stopWalking);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
+                        })
+                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                // do nothing
+                            }
+                        })
+                        .show();
+
+
+                break;
+
+            default:
+                throw new RuntimeException("Unknown button ID");
+        }
+
+    }
+    private void updateButtonState(){
+
+        startBtn = (Button) findViewById(R.id.button1);
+        stopBtn = (Button) findViewById(R.id.button2);
+
+        if(!isWalking){
+            startBtn.setVisibility(View.VISIBLE);
+            stopBtn.setVisibility(View.INVISIBLE);
+        } else {
+            startBtn.setVisibility(View.INVISIBLE);
+            stopBtn.setVisibility(View.VISIBLE);
+        }
+
     }
 }

@@ -15,4 +15,7 @@
     <string name="button_right">right</string>
     <string name="stimulus">stimulus</string>
 
+    <string name="remote_ip">Remote IP</string>
+    <string name="time_offset">Time offset</string>
+    <string name="time_offsetAverage">Time offset (average)</string>
 </resources>

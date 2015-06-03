@@ -28,9 +28,12 @@ public class readWriteSettings
         if (isExternalStorageWritable()) {
             out.println("external storage is fine");
 
+//            File filePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+//            out.println("external storage is fine"+filePath);
+
             // sets the files in the directory
-            fileDirectory = new File(Environment.getExternalStorageDirectory() + "/Presenter-io");
-            imgDirectory = new File(Environment.getExternalStorageDirectory() + "/Presenter-io/images");
+            fileDirectory = new File(Environment.getExternalStorageDirectory(), "/Presenter-io");
+            imgDirectory = new File(Environment.getExternalStorageDirectory(), "/Presenter-io/images");
             Presenter.fileWriteDirectory = new File(Environment.getExternalStorageDirectory(), "/Presenter-io/data");
             System.out.println(Presenter.fileWriteDirectory);
 

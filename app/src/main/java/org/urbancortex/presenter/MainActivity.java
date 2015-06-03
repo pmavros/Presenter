@@ -51,6 +51,8 @@ public class MainActivity extends Activity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            getTimeOffset();
+
             return true;
         }
 
@@ -179,5 +181,41 @@ public class MainActivity extends Activity {
         Presenter.startMillis = elapsedRealtime();
         Presenter.startTime = System.currentTimeMillis();
         startService(intent);
+    }
+
+    public boolean checkPassword(){
+
+        // get the present password
+        EditText passwordText = (EditText) findViewById(R.id.edit_password);
+
+        if(passwordText!=null && !passwordText.equals("")){
+            // get the present password
+            String password = passwordText.getText().toString();
+            System.out.println(password);
+
+
+            if (password.equals("4321")) {
+                // clean the password field
+                passwordText.setText("");
+                return true;
+            } else {
+
+                Toast.makeText(MainActivity.this, "Enter correct research password first.", Toast.LENGTH_LONG).show();
+                return false;
+            }
+
+        } else {
+            Toast.makeText(MainActivity.this, "Enter correct research password first.", Toast.LENGTH_LONG).show();
+            return false;
+        }
+    }
+
+    public void getTimeOffset(){
+        //Do something about it
+
+        // start second activity
+        Intent intentTimeOffset = new Intent(this, TimeOffsetActivity.class);
+        startActivity(intentTimeOffset);
+
     }
 }

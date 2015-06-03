@@ -20,6 +20,11 @@ public class Presenter
     static File fileDirectory = null;
     static File fileWriteDirectory = null;
     static File imgDirectory;
+    public static int timeOffset;
+    public static String timeOffset_timestamp;
+
+    public static boolean isWalking;
+    public static String remoteIP;
 
     public Presenter() {}
 }

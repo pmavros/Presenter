@@ -25,6 +25,8 @@ import static android.os.SystemClock.elapsedRealtime;
 import static org.urbancortex.presenter.Presenter.isRecording;
 import static org.urbancortex.presenter.Presenter.startMillis;
 import static org.urbancortex.presenter.Presenter.startTime;
+import static org.urbancortex.presenter.Presenter.timeOffset;
+import static org.urbancortex.presenter.Presenter.timeOffset_timestamp;
 
 public class csv_logger extends Service {
 
@@ -93,6 +95,17 @@ public class csv_logger extends Service {
 
         //schedule the timer, after the first 5000ms the TimerTask will run every 10000ms
         timer.schedule(timerTask, 5000, mGPSInterval); //
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+
+            public void run() {
+                // this code will be executed after 2 seconds
+               TimeOffsetActivity.getTimeOffset();
+            }
+
+
+        }, 1000, 10000);
     }
 
     public void stopTimerTask() {
@@ -161,8 +174,11 @@ public class csv_logger extends Service {
             time = startTime + millisElapsed;
             date = formatterDate.format(new Date(time));
             String currentTime = formatterTime.format(new Date(time));
+//            String record = "event, eventResponse, eventDetails, date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
 
             eventInfo = "GPS" + ", " +
+                    "timeOffset "+ timeOffset +", " +
+                    "timeOffset_timestamp " + timeOffset_timestamp + ", "+
                     time + ", " +
                     date + ", " +
                     currentTime + ", " +
@@ -205,7 +221,7 @@ public class csv_logger extends Service {
         System.out.println("fileWriteDirectory" + Presenter.fileWriteDirectory);
         buf = new BufferedWriter(new FileWriter(new File(Presenter.fileWriteDirectory, outputFileName) ));
 
-        String record = "event, date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
+        String record = "event, eventResponse, eventDetails, date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
 
         buf.write(record);
         buf.append("\n");
