@@ -13,7 +13,7 @@ public class Presenter
         extends Application
 {
     public static Event[] experimentEvents;
-    protected static int index = 0;
+    protected static int index = 1;
     protected static boolean isRecording = false;
     public static long startMillis;
     public static long startTime;

@@ -177,7 +177,7 @@ public class MainActivity extends Activity {
 
     private void startNewRecording(Intent intent){
         Presenter.isRecording = true;
-        Presenter.index = 0;
+        Presenter.index = 1;
         Presenter.startMillis = elapsedRealtime();
         Presenter.startTime = System.currentTimeMillis();
         startService(intent);

@@ -101,7 +101,10 @@ public class csv_logger extends Service {
 
             public void run() {
                 // this code will be executed after 2 seconds
-               TimeOffsetActivity.getTimeOffset();
+                if(Presenter.remoteIP!=null){
+                    TimeOffsetActivity.getTimeOffset();
+                }
+
             }
 
 

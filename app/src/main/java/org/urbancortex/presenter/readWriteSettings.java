@@ -134,8 +134,11 @@ public class readWriteSettings
 
                         for (int j = 0; j < numberOfEvents; j++)
                         {
+
                             String[] arrayOfColumns = arrayOfEvents[j].split(",");
                             //System.out.println(arrayOfColumns.length);
+
+                            System.out.println(j+ "arrayOfColumns[5]"+arrayOfColumns[5]);
 
                             if (arrayOfColumns.length == 9)
                             {
@@ -162,7 +165,7 @@ public class readWriteSettings
         System.out.println(arrayOfString1);
 
         // skip the first it is the header of the file
-        numberOfEvents = arrayOfString1.length-1;
+        numberOfEvents = arrayOfString1.length;
         System.out.println("there are "+numberOfEvents+ " events");
 
         return arrayOfString1;

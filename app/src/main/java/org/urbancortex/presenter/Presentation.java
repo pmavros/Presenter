@@ -168,15 +168,12 @@ public class Presentation extends Activity  {
         if(enable) {
             Button localButton = null;
             for (int i = 0; i < 3; i++) {
-                // System.out.println(i);
-                //System.out.println("experiment events" + experimentEvents[index].Buttons[i]);
                 int id = 1 + i;
                 String buttonID = "present_button" + id;
-//            System.out.println(buttonID);
                 int layoutID = getResources().getIdentifier(buttonID, "id", getPackageName());
                 localButton = (Button) findViewById(layoutID);
 
-                if (!experimentEvents[index].Buttons[i].equals("NA") && localButton != null) {
+                if (!experimentEvents[index].Buttons[i].equals("NA") && !experimentEvents[index].Buttons[i].equals("") && !experimentEvents[index].Buttons[i].equals(" ") && localButton != null) {
                     localButton.setText(experimentEvents[index].Buttons[i]);
                     localButton.setEnabled(true);
                 } else if (localButton != null) {
@@ -308,39 +305,36 @@ public class Presentation extends Activity  {
     public void onButtonClick(View view)
             throws IOException, ParseException, InterruptedException
     {
-        if( isPressed) {
 
-            if (SystemClock.elapsedRealtime() - mLastClickTime < 1000) {
+        btn = ((Button) view);
+
+        v.vibrate(20L);
+        String str = ((Button) view).getText().toString();
+        System.out.println(str);
+
+        boolean response = logEvent(experimentEvents[index].Title, str, "response", elapsedRealtime());
+        System.out.println("logged " + response);
+
+        if( isPressed ) {
+
+            if (SystemClock.elapsedRealtime() - mLastClickTime < 500) {
+                return;
+            }
+
+            if (SystemClock.elapsedRealtime() - updateUITime < 500) {
                 return;
             }
             mLastClickTime = SystemClock.elapsedRealtime();
-
-            btn = ((Button) view);
             btn.setClickable(false);
-            v.vibrate(20L);
-            String str = ((Button) view).getText().toString();
-            System.out.println(str);
 
-            boolean response = logEvent(experimentEvents[index].Title, str, "response", elapsedRealtime());
-            System.out.println("logged " + response);
             if (response) {
                 if (!str.equals("Back")) {
                     if (experimentEvents[index].Alert) {
-
-                        new AlertDialog.Builder(this)
+                        AlertDialog alertDialog;
+                        alertDialog = new AlertDialog.Builder(this)
                                 .setTitle("New Instruction")
                                 .setMessage("Are you ready to receive the next instruction?")
                                 .setIcon(0)
-                                .setOnKeyListener(new DialogInterface.OnKeyListener() {
-                                    @Override
-                                    public boolean onKey(DialogInterface dialog, int keyCode,
-                                                         KeyEvent event) {
-                                        if(event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP)
-                                            return true;
-                                        return false;
-                                    }
-
-                                })
                                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
                                         // if yes
@@ -348,11 +342,21 @@ public class Presentation extends Activity  {
 
                                     }
                                 })
+                                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // if no
+
+                                        btn.setClickable(true);
+                                    }
+                                })
+                                .setCancelable(false)
                                 .show();
 
+                        alertDialog.setCanceledOnTouchOutside(false);
+
+
                     } else {
-                        loadNextEvent();
-                        updateUI();
+                        setToNeutral();
                     }
 
                 } else if (str.equals("Back")) {
