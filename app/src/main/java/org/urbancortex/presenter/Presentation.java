@@ -8,19 +8,22 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.os.Vibrator;
-import android.view.KeyEvent;
+
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,7 +39,7 @@ import static android.os.SystemClock.elapsedRealtime;
 import static org.urbancortex.presenter.Presenter.*;
 
 
-public class Presentation extends Activity  {
+public class Presentation extends Activity implements SensorEventListener {
 
     static long updateUITime;
     Button btn;
@@ -53,7 +56,11 @@ public class Presentation extends Activity  {
     boolean isPressed = true;
     private Button startBtn;
     private Button stopBtn;
-    long startShowingMap = 0;
+
+    Sensor accelerometer;
+    Sensor magnetometer;
+    private String participantID;
+    SensorManager mSensorManager;
 
 
 
@@ -73,7 +80,7 @@ public class Presentation extends Activity  {
             System.out.println("Service is disconnected");
         }
     };
-    private String participantID;
+    private float azimut;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +91,21 @@ public class Presentation extends Activity  {
         // Get the message from the intent
         participantID = getIntent().getStringExtra(MainActivity.EXTRA_MESSAGE);
         bindService(new Intent(this, csv_logger.class), mConnection, 0);
+
+        mSensorManager = (SensorManager)getSystemService(android.content.Context.SENSOR_SERVICE);
+
+
+
+
+        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
+//        SensorManager.getRotationMatrixFromVector(rotationV, rotationVector);
+//        Sensor SensorOrientation = SensorManager.getOrientation(rotationV, orientationValuesV);
+//        mSensorManager.getOrientation(rotationV, orientationValuesV);
+
+        df = new DecimalFormat("#.00");
 
     }
 
@@ -119,12 +141,18 @@ public class Presentation extends Activity  {
     {
         System.out.println("onPause");
         super.onPause();
+
+        mSensorManager.unregisterListener(this);
     }
 
     protected void onResume()
     {
         System.out.println("onResume");
         super.onResume();
+
+        mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);
+
 
         setupUI();
         try {
@@ -495,5 +523,39 @@ public class Presentation extends Activity  {
             stopBtn.setVisibility(View.VISIBLE);
         }
 
+    }
+
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
+
+    }
+
+
+    float[] mGravity;
+    float[] mGeomagnetic;
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+
+        /*
+            Taken from Fernando Greenyway:
+            http://www.codingforandroid.com/2011/01/using-orientation-sensors-simple.html
+         */
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
+            mGravity = event.values;
+        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
+            mGeomagnetic = event.values;
+        if (mGravity != null && mGeomagnetic != null) {
+            float R[] = new float[9];
+            float I[] = new float[9];
+            boolean success = SensorManager.getRotationMatrix(R, I, mGravity, mGeomagnetic);
+            if (success) {
+                float orientation[] = new float[3];
+                SensorManager.getOrientation(R, orientation);
+                azimut = orientation[0]; // orientation contains: azimut, pitch and roll
+                System.out.println("azimuth: "+azimut);
+            }
+        }
     }
 }
