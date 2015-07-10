@@ -15,6 +15,9 @@ import android.widget.TextView;
 
 import static android.os.SystemClock.elapsedRealtime;
 import org.apache.commons.net.ntp.TimeInfo;
+
+import java.util.Arrays;
+
 import static org.urbancortex.presenter.Presenter.*;
 
 public class TimeOffsetActivity extends Activity {
@@ -68,7 +71,7 @@ public class TimeOffsetActivity extends Activity {
 
 
 
-        int[] a = new int[100];
+        int[] a = new int[10];
         int sum = 0;
         TimeInfo info = null;
 
@@ -98,7 +101,8 @@ public class TimeOffsetActivity extends Activity {
         }
         int average = sum / a.length;
         Presenter.timeOffset = average;
-        Presenter.timeOffset_timestamp = info.getMessage().getReceiveTimeStamp().toDateString();
+        Presenter.timeOffset_Array = Arrays.toString(a).replaceAll(", ",";");
+        Presenter.timeOffset_timestamp = info.getMessage().getReceiveTimeStamp().toDateString().replaceAll(", "," ");
         System.out.println("average is " + average);
 
         return average;

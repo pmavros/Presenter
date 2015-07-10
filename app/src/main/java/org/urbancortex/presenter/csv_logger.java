@@ -26,6 +26,7 @@ import static org.urbancortex.presenter.Presenter.isRecording;
 import static org.urbancortex.presenter.Presenter.startMillis;
 import static org.urbancortex.presenter.Presenter.startTime;
 import static org.urbancortex.presenter.Presenter.timeOffset;
+import static org.urbancortex.presenter.Presenter.timeOffset_Array;
 import static org.urbancortex.presenter.Presenter.timeOffset_timestamp;
 
 public class csv_logger extends Service {
@@ -180,8 +181,9 @@ public class csv_logger extends Service {
 //            String record = "event, eventResponse, eventDetails, date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
 
             eventInfo = "GPS" + ", " +
-                    "timeOffset "+ timeOffset +", " +
-                    "timeOffset_timestamp " + timeOffset_timestamp + ", "+
+                    "timeOffsetAverage "+ timeOffset +", " +
+                    "TO " + timeOffset_timestamp + " "+
+                    "TO_Array" + timeOffset_Array + "," +
                     time + ", " +
                     date + ", " +
                     currentTime + ", " +

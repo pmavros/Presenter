@@ -25,6 +25,7 @@ public class Presenter
 
     public static boolean isWalking;
     public static String remoteIP;
+    public static String timeOffset_Array;
 
     public Presenter() {}
 }

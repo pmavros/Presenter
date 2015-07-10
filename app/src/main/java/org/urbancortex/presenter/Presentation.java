@@ -39,8 +39,8 @@ import static android.os.SystemClock.elapsedRealtime;
 import static org.urbancortex.presenter.Presenter.*;
 
 
-public class Presentation extends Activity implements SensorEventListener {
-
+public class Presentation extends Activity  {
+//    implements SensorEventListener
     static long updateUITime;
     Button btn;
     DecimalFormat df = new DecimalFormat("#.#");
@@ -142,7 +142,15 @@ public class Presentation extends Activity implements SensorEventListener {
         System.out.println("onPause");
         super.onPause();
 
-        mSensorManager.unregisterListener(this);
+//        mSensorManager.unregisterListener(this);
+        setupUI();
+        try {
+            updateUI();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
     }
 
     protected void onResume()
@@ -150,8 +158,8 @@ public class Presentation extends Activity implements SensorEventListener {
         System.out.println("onResume");
         super.onResume();
 
-        mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);
+//        mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+//        mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);
 
 
         setupUI();
@@ -526,36 +534,36 @@ public class Presentation extends Activity implements SensorEventListener {
     }
 
 
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int i) {
-
-    }
-
-
-    float[] mGravity;
-    float[] mGeomagnetic;
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-
-        /*
-            Taken from Fernando Greenyway:
-            http://www.codingforandroid.com/2011/01/using-orientation-sensors-simple.html
-         */
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
-            mGravity = event.values;
-        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
-            mGeomagnetic = event.values;
-        if (mGravity != null && mGeomagnetic != null) {
-            float R[] = new float[9];
-            float I[] = new float[9];
-            boolean success = SensorManager.getRotationMatrix(R, I, mGravity, mGeomagnetic);
-            if (success) {
-                float orientation[] = new float[3];
-                SensorManager.getOrientation(R, orientation);
-                azimut = orientation[0]; // orientation contains: azimut, pitch and roll
-                System.out.println("azimuth: "+azimut);
-            }
-        }
-    }
+//    @Override
+//    public void onAccuracyChanged(Sensor sensor, int i) {
+//
+//    }
+//
+//
+//    float[] mGravity;
+//    float[] mGeomagnetic;
+//
+//    @Override
+//    public void onSensorChanged(SensorEvent event) {
+//
+//        /*
+//            Taken from Fernando Greenyway:
+//            http://www.codingforandroid.com/2011/01/using-orientation-sensors-simple.html
+//         */
+//        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
+//            mGravity = event.values;
+//        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
+//            mGeomagnetic = event.values;
+//        if (mGravity != null && mGeomagnetic != null) {
+//            float R[] = new float[9];
+//            float I[] = new float[9];
+//            boolean success = SensorManager.getRotationMatrix(R, I, mGravity, mGeomagnetic);
+//            if (success) {
+//                float orientation[] = new float[3];
+//                SensorManager.getOrientation(R, orientation);
+//                azimut = orientation[0]; // orientation contains: azimut, pitch and roll
+//                System.out.println("azimuth: "+azimut);
+//            }
+//        }
+//    }
 }
