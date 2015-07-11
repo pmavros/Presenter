@@ -22,7 +22,7 @@ public class Presenter
     static File imgDirectory;
     public static int timeOffset;
     public static String timeOffset_timestamp;
-
+    public static String condition;
     public static boolean isWalking;
     public static String remoteIP;
     public static String timeOffset_Array;

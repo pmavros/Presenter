@@ -259,6 +259,8 @@ public class Presentation extends Activity  {
             btn.setClickable(true);
         }
 
+        condition = experimentEvents[index].Condition;
+
 
 
     }
@@ -322,14 +324,14 @@ public class Presentation extends Activity  {
 
     }
 
-    public boolean logEvent(String eventName, String eventResponse, String eventType, long eventEpoch)
+    public boolean logEvent(String eventName, String eventResponse, String eventType, long elapsedRealTime)
             throws IOException, ParseException
     {
         System.out.println(eventResponse + " " + eventType);
-        long l = eventEpoch - Presenter.startMillis + Presenter.startTime;
-        String date = formatterDate.format(new Date(l));
-        String time = formatterTime.format(new Date(l));
-        String event = eventName + ", " + eventResponse.toString() + ", " + eventType + "," + l + ", " + date + ", " + time + ", " + locations.lat + ", " + locations.lon + ", " + locations.speed + ", " + locations.bearing + ", " + locations.elevation + ", " + locations.accuracy;
+        long monotonicEpoch = elapsedRealTime - Presenter.startMillis + Presenter.startTime;
+        String date = formatterDate.format(new Date(monotonicEpoch));
+        String time = formatterTime.format(new Date(monotonicEpoch));
+        String event = eventName + ", " + eventResponse.toString() + ", " + eventType + "," + monotonicEpoch + ", " + condition  + ", " + date + ", " + time + ", " + locations.lat + ", " + locations.lon + ", " + locations.speed + ", " + locations.bearing + ", " + locations.elevation + ", " + locations.accuracy;
         boolean logged = false;
         if (mBound) {
             logged = mService.writeStringToFile(event);
@@ -400,6 +402,7 @@ public class Presentation extends Activity  {
                 }
             } else {
                 Toast.makeText(this, "Couldn't record this, press again.", Toast.LENGTH_SHORT).show();
+
             }
         }
 

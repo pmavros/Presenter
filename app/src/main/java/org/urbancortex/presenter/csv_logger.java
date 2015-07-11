@@ -22,6 +22,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static android.os.SystemClock.elapsedRealtime;
+import static org.urbancortex.presenter.Presenter.currentRoute;
 import static org.urbancortex.presenter.Presenter.isRecording;
 import static org.urbancortex.presenter.Presenter.startMillis;
 import static org.urbancortex.presenter.Presenter.startTime;
@@ -178,12 +179,13 @@ public class csv_logger extends Service {
             time = startTime + millisElapsed;
             date = formatterDate.format(new Date(time));
             String currentTime = formatterTime.format(new Date(time));
-//            String record = "event, eventResponse, eventDetails, date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
+//            String record = "event, eventResponse, eventDetails, condition, date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
 
             eventInfo = "GPS" + ", " +
                     "timeOffsetAverage "+ timeOffset +", " +
                     "TO " + timeOffset_timestamp + " "+
                     "TO_Array" + timeOffset_Array + "," +
+                    currentRoute + ", " +
                     time + ", " +
                     date + ", " +
                     currentTime + ", " +
