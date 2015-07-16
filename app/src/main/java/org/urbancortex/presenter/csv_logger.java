@@ -175,7 +175,7 @@ public class csv_logger extends Service {
 
             long millisElapsed = elapsedRealtime() - startMillis;
 
-            time = startTime + millisElapsed;
+            long timeEpoch = startTime + millisElapsed;
             date = formatterDate.format(new Date(time));
             String currentTime = formatterTime.format(new Date(time));
 
@@ -188,7 +188,7 @@ public class csv_logger extends Service {
                     "TO_Average: "+ timeOffset +", " +
                     "TO_Array: " + timeOffset_Array + "," +
                     "TO_lastTimestamp: " + timeOffset_timestamp + ", "+
-                    time + ", " + // epoch
+                    timeEpoch + ", " + // epoch
                     date + ", " +   // formatted date
                     currentTime + ", " + // formatted time
                     locations.lat + ", " +
@@ -230,8 +230,8 @@ public class csv_logger extends Service {
         System.out.println("fileWriteDirectory" + Presenter.fileWriteDirectory);
         buf = new BufferedWriter(new FileWriter(new File(Presenter.fileWriteDirectory, outputFileName) ));
 
-//        String record = "event, eventResponse, eventDetails, condition, date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
-        String record = "event, condition, code, eventText, eventResponse, eventDetails , date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
+//        String record = "event, eventResponse, eventDetails, condition, epoch, date, time,  lat, lon, speed, bearing, elevation, accuracy";
+        String record = "event, condition, code, eventText, eventResponse, eventDetails, epoch, date, time, lat, lon, speed, bearing, elevation, accuracy";
 
         buf.write(record);
         buf.append("\n");
