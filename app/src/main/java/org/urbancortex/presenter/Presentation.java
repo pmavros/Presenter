@@ -56,6 +56,7 @@ public class Presentation extends Activity  {
     boolean isPressed = true;
     private Button startBtn;
     private Button stopBtn;
+    long showStimulus;
 
     Sensor accelerometer;
     Sensor magnetometer;
@@ -235,6 +236,21 @@ public class Presentation extends Activity  {
         }
     }
 
+    public void loadNextEvent(){
+        System.out.println( "loadNextEvent " ) ;
+        if (Presenter.index < (Presenter.experimentEvents.length - 1)) {
+            Presenter.index++;
+
+            try {
+                updateUI();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private void updateUI()
             throws IOException, ParseException
     {
@@ -252,7 +268,10 @@ public class Presentation extends Activity  {
         if (Presenter.index != lastIndex)
         {
             updateUITime = SystemClock.elapsedRealtime();
-            logEvent(experimentEvents[index].Title, "new_stimulus", experimentEvents[index].Code, elapsedRealtime());
+
+            //  String record = "event, condition, code, eventText, eventResponse, eventDetails , date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
+            //  logEvent(String event, String eventCondition, String eventCode, String eventText, String eventResponse, long elapsedRealTime)
+            logEvent("newStim", experimentEvents[index].Condition, experimentEvents[index].Code, experimentEvents[index].Title, "NA", elapsedRealtime());
             lastIndex = Presenter.index;
         }
         if (btn != null) {
@@ -260,25 +279,12 @@ public class Presentation extends Activity  {
         }
 
         condition = experimentEvents[index].Condition;
-
+        showStimulus = elapsedRealtime();
 
 
     }
 
-    public void loadNextEvent(){
-        System.out.println( "loadNextEvent " ) ;
-        if (Presenter.index < (Presenter.experimentEvents.length - 1)) {
-            Presenter.index++;
 
-           try {
-                updateUI();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
-    }
     public boolean alertActive = false;
 
     public void loadPreviousEvent()
@@ -301,8 +307,8 @@ public class Presentation extends Activity  {
         imageView.setImageBitmap(localBitmap);
         imageView.invalidate();
 
-        long d = (long) (2000.0D * Math.random());
-        System.out.println("jitter duration "+d);
+        long d = (long) (1500+(1000.0D * Math.random()));
+        System.out.println("jitter duration: "+d);
 
 
         new Timer().schedule(new TimerTask() {
@@ -324,17 +330,27 @@ public class Presentation extends Activity  {
 
     }
 
-    public boolean logEvent(String eventName, String eventResponse, String eventType, long elapsedRealTime)
+    public boolean logEvent(String event, String eventCondition, String eventCode, String eventText, String eventResponse, long elapsedRealTime)
             throws IOException, ParseException
     {
-        System.out.println(eventResponse + " " + eventType);
+        long responseTime = 0;
+        System.out.println(eventResponse + " " + eventCondition);
+
+//        long responseTime = elapsedRealTime - showStimulus;
         long monotonicEpoch = elapsedRealTime - Presenter.startMillis + Presenter.startTime;
         String date = formatterDate.format(new Date(monotonicEpoch));
         String time = formatterTime.format(new Date(monotonicEpoch));
-        String event = eventName + ", " + eventResponse.toString() + ", " + eventType + "," + monotonicEpoch + ", " + condition  + ", " + date + ", " + time + ", " + locations.lat + ", " + locations.lon + ", " + locations.speed + ", " + locations.bearing + ", " + locations.elevation + ", " + locations.accuracy;
+
+//          String record = "event, condition, code, eventText, eventResponse, eventDetails , date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
+
+        if(event == "response"){
+            responseTime = elapsedRealTime - showStimulus;
+        }
+
+        String eventLog = event +","+ eventCondition + ", " +  eventCode + ", " + eventText + ", " + eventResponse.toString() + ", " + responseTime + "," + monotonicEpoch   + ", " + date + ", " + time + ", " + locations.lat + ", " + locations.lon + ", " + locations.speed + ", " + locations.bearing + ", " + locations.elevation + ", " + locations.accuracy;
         boolean logged = false;
         if (mBound) {
-            logged = mService.writeStringToFile(event);
+            logged = mService.writeStringToFile(eventLog);
         }
         System.out.println(logged);
         return logged;
@@ -347,10 +363,14 @@ public class Presentation extends Activity  {
         btn = ((Button) view);
 
         v.vibrate(20L);
-        String str = ((Button) view).getText().toString();
-        System.out.println(str);
+        String buttonText = ((Button) view).getText().toString();
+        System.out.println(buttonText);
 
-        boolean response = logEvent(experimentEvents[index].Title, str, "response", elapsedRealtime());
+        //          String record = "event, condition, code, eventText, eventResponse, eventDetails , date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
+        //  logEvent(String event, String eventCondition, String eventCode, String eventText, String eventResponse, long elapsedRealTime)
+//                           logEvent("newStim", experimentEvents[index].Condition, experimentEvents[index].Code, experimentEvents[index].Title, "NA", elapsedRealtime());
+
+        boolean response = logEvent("response", experimentEvents[index].Condition, experimentEvents[index].Code, experimentEvents[index].Title, buttonText, elapsedRealtime());
         System.out.println("logged " + response);
 
         if( isPressed ) {
@@ -366,7 +386,7 @@ public class Presentation extends Activity  {
             btn.setClickable(false);
 
             if (response) {
-                if (!str.equals("Back")) {
+                if (!buttonText.equals("Back")) {
                     if (experimentEvents[index].Alert) {
                         AlertDialog alertDialog;
                         alertDialog = new AlertDialog.Builder(this)
@@ -397,7 +417,7 @@ public class Presentation extends Activity  {
                         setToNeutral();
                     }
 
-                } else if (str.equals("Back")) {
+                } else if (buttonText.equals("Back")) {
                     loadPreviousEvent();
                 }
             } else {
@@ -470,13 +490,14 @@ public class Presentation extends Activity  {
                 isWalking = true;
                 startWalking = elapsedRealtime();
                 updateButtonState();
-                try {
-                    logEvent("startRoute", "null", "null", elapsedRealtime());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+//                try {
+
+////                    logEvent("startRoute", "null", "null", elapsedRealtime());
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                } catch (ParseException e) {
+//                    e.printStackTrace();
+//                }
 
 
                 break;
@@ -496,13 +517,14 @@ public class Presentation extends Activity  {
                                 long stopWalking = elapsedRealtime();
                                 long walkingTime = stopWalking-startWalking;
 
-                                try {
-                                    logEvent("arrived", String.valueOf(walkingTime), "null", stopWalking);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                } catch (ParseException e) {
-                                    e.printStackTrace();
-                                }
+//                                try {
+//
+////                                    logEvent("arrived", String.valueOf(walkingTime), "null", stopWalking);
+//                                } catch (IOException e) {
+//                                    e.printStackTrace();
+//                                } catch (ParseException e) {
+//                                    e.printStackTrace();
+//                                }
 
                             }
                         })

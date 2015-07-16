@@ -178,16 +178,19 @@ public class csv_logger extends Service {
             time = startTime + millisElapsed;
             date = formatterDate.format(new Date(time));
             String currentTime = formatterTime.format(new Date(time));
-//            String record = "event, eventResponse, eventDetails, condition, date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
+
+//          String record = "event, condition, code, eventText, eventResponse, eventDetails , date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
+
 
             eventInfo = "GPS" + ", " +
-                    "timeOffsetAverage: "+ timeOffset +", " +
-                    "TO: " + timeOffset_timestamp + " "+
-                    "TO_Array: " + timeOffset_Array + "," +
                     Presenter.condition + ", " +
-                    time + ", " +
-                    date + ", " +
-                    currentTime + ", " +
+                    Presenter.code + ", " +
+                    "TO_Average: "+ timeOffset +", " +
+                    "TO_Array: " + timeOffset_Array + "," +
+                    "TO_lastTimestamp: " + timeOffset_timestamp + ", "+
+                    time + ", " + // epoch
+                    date + ", " +   // formatted date
+                    currentTime + ", " + // formatted time
                     locations.lat + ", " +
                     locations.lon + ", " +
                     locations.speed + ", " +
@@ -227,7 +230,8 @@ public class csv_logger extends Service {
         System.out.println("fileWriteDirectory" + Presenter.fileWriteDirectory);
         buf = new BufferedWriter(new FileWriter(new File(Presenter.fileWriteDirectory, outputFileName) ));
 
-        String record = "event, eventResponse, eventDetails, date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
+//        String record = "event, eventResponse, eventDetails, condition, date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
+        String record = "event, condition, code, eventText, eventResponse, eventDetails , date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
 
         buf.write(record);
         buf.append("\n");
