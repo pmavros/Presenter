@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import static java.lang.System.out;
 import static org.urbancortex.presenter.Presenter.fileDirectory;
@@ -131,6 +132,7 @@ public class readWriteSettings
                         String[] arrayOfEvents = makeArray(data);
 
                         Presenter.experimentEvents = new Event[numberOfEvents];
+                        Presenter.EventSpinner = new ArrayList<String>();
 
                         for (int j = 0; j < numberOfEvents; j++)
                         {
@@ -143,6 +145,7 @@ public class readWriteSettings
                             if (arrayOfColumns.length == 9)
                             {
                                 Event[] arrayOfEvent = Presenter.experimentEvents;
+
 //                                new Event(condition, code, title, text, buttons[3], img, alert);
                                 arrayOfEvent[j] = new Event(arrayOfColumns[0], // condition
                                         arrayOfColumns[1], // code
@@ -151,8 +154,11 @@ public class readWriteSettings
                                         new String[]{arrayOfColumns[5],arrayOfColumns[6],arrayOfColumns[7]}, // buttons
                                         arrayOfColumns[4], // img
                                         arrayOfColumns[8].equals("yes"));// alert
+
+                                Presenter.EventSpinner.add(arrayOfColumns[0]);
                             }
                         }
+                        Presenter.EventSpinner.remove(0);
                     }
                 }
             }

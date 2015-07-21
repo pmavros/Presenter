@@ -11,6 +11,11 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import static org.urbancortex.presenter.Presenter.remoteIP;
 
 /*
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -50,6 +55,7 @@ public final class NTPClient
 {
 
     private static final NumberFormat numberFormat = new java.text.DecimalFormat("0.00");
+    private static boolean socketTimeout;
 
     /**
      * Process <code>TimeInfo</code> object and print its details.
@@ -159,7 +165,7 @@ public final class NTPClient
 
         NTPUDPClient client = new NTPUDPClient();
         // We want to timeout if a response takes longer than 10 seconds
-        client.setDefaultTimeout(10000);
+        client.setDefaultTimeout(5000);
         try {
             client.open();
             for (String arg : args)
@@ -175,14 +181,67 @@ public final class NTPClient
 
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
+                    socketTimeout = true;
+//                    csv_logger.stopNTPTask();
+                    System.out.println("couldn't establish a connection" + ioe);
                 }
             }
         } catch (SocketException e) {
             e.printStackTrace();
+            socketTimeout = true;
+//            csv_logger.stopNTPTask();
+            System.out.println("couldn't establish a connection" + e);
         }
 
         client.close();
         return null;
+    }
+
+    public static void getTimeOffset() {
+
+        socketTimeout = false;
+
+        if (Presenter.remoteIP != null) {
+
+            System.out.println("getting time offset");
+
+            int[] a = new int[10];
+            int sum = 0;
+//            TimeInfo info = null;
+
+
+            for (int i = 0; i < a.length; i++) {
+                TimeInfo info = null;
+
+                if (remoteIP != null && !socketTimeout) {
+                    info = NTPClient.main(new String[]{remoteIP}); //"time-a.nist.gov"
+                }
+
+                if (info != null) {
+                    info.computeDetails(); // compute offset/delay if not already done
+                    Long offsetValue = info.getOffset();
+                    Long delayValue = info.getDelay();
+                    String delay = (delayValue == null) ? "N/A" : delayValue.toString();
+                    String offset = (offsetValue == null) ? "N/A" : offsetValue.toString();
+                    Presenter.timeOffset_timestamp = info.getMessage().getReceiveTimeStamp().toDateString().replaceAll(", ", " ");
+                    a[i] = Integer.parseInt(offset);
+
+                }
+
+                if(socketTimeout){
+                    break;
+                }
+                System.out.println(i);
+            }
+
+            for (int i = 0; i < a.length; i++) {
+                sum += a[i];
+            }
+
+            Presenter.timeOffset = sum / a.length;
+            Presenter.timeOffset_Array = Arrays.toString(a).replaceAll(", ", ";");
+
+        }
     }
 
 }

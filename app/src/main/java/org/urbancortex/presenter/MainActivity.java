@@ -8,8 +8,11 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.io.File;
@@ -17,7 +20,7 @@ import java.io.File;
 import static android.os.SystemClock.elapsedRealtime;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements AdapterView.OnItemSelectedListener {
 
     public static final String EXTRA_MESSAGE = "org.urbancortex.presenter.MESSAGE";
     protected static boolean exit = false;
@@ -70,14 +73,29 @@ public class MainActivity extends Activity {
     protected void onResume()
     {
         super.onResume();
+
+        // spinner
+        Spinner spinner = (Spinner) (findViewById(R.id.spinner1));
+
         if (!Presenter.isRecording) {
             ((Button)findViewById(R.id.cont)).setVisibility(View.INVISIBLE);
+            ((Spinner)findViewById(R.id.spinner1)).setVisibility(View.VISIBLE);
         } else if (Presenter.isRecording) {
             ((Button)findViewById(R.id.cont)).setVisibility(View.VISIBLE);
+            ((Spinner)findViewById(R.id.spinner1)).setVisibility(View.INVISIBLE);
+
         }
 
         if (readWriteSettings.foldersReadyToReadWrite()) {
             readWriteSettings.loadEventSettings();
+
+                // Create an ArrayAdapter using the string array and a default spinner layout
+                ArrayAdapter<String> adapter= new ArrayAdapter<String>(MainActivity.this,android.R.layout.simple_spinner_item, Presenter.EventSpinner);
+
+                  // Specify the layout to use when the list of choices appears
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                // Apply the adapter to the spinner
+                spinner.setAdapter(adapter);
         }
 
     }
@@ -116,8 +134,7 @@ public class MainActivity extends Activity {
         EditText editText = (EditText) findViewById(R.id.edit_message);
         final String participantID = editText.getText().toString();
 
-
-        if(readWriteSettings.foldersReadyToReadWrite()){
+           if(readWriteSettings.foldersReadyToReadWrite()){
 
             // prepare logger settings
             final Intent loggingIntent = new Intent(this, csv_logger.class);
@@ -177,7 +194,15 @@ public class MainActivity extends Activity {
 
     private void startNewRecording(Intent intent){
         Presenter.isRecording = true;
-        Presenter.index = 1;
+
+
+//        Presenter.index = 1;
+        Spinner spinner = (Spinner) findViewById(R.id.spinner1);
+        spinner.setOnItemSelectedListener(this);
+
+        Presenter.index = 1+ spinner.getSelectedItemPosition();
+        System.out.println(spinner.getSelectedItemPosition());
+
         Presenter.startMillis = elapsedRealtime();
         Presenter.startTime = System.currentTimeMillis();
         startService(intent);
@@ -216,6 +241,16 @@ public class MainActivity extends Activity {
         // start second activity
         Intent intentTimeOffset = new Intent(this, TimeOffsetActivity.class);
         startActivity(intentTimeOffset);
+
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView) {
 
     }
 }

@@ -28,6 +28,7 @@ import static org.urbancortex.presenter.Presenter.startTime;
 import static org.urbancortex.presenter.Presenter.timeOffset;
 import static org.urbancortex.presenter.Presenter.timeOffset_Array;
 import static org.urbancortex.presenter.Presenter.timeOffset_timestamp;
+import static org.urbancortex.presenter.TimeOffsetActivity.*;
 
 public class csv_logger extends Service {
 
@@ -42,8 +43,10 @@ public class csv_logger extends Service {
     String eventInfo;
     private int mGPSInterval = 5000; // 5 seconds by default, can be changed later
 
-    Timer timer;
-    TimerTask timerTask;
+    Timer timer1;
+    static Timer timer2;
+    TimerTask timerTimeOffset;
+    TimerTask timerTaskLogging;
     //we are going to use a handler to be able to run in our TimerTask
     protected final Handler handler;
 
@@ -66,11 +69,12 @@ public class csv_logger extends Service {
 
         try {
             createFile(participantID);
+            startTimers();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        startTimer();
+
 
         return START_NOT_STICKY;
     }
@@ -87,42 +91,41 @@ public class csv_logger extends Service {
     }
 
 
-    public void startTimer() {
-        //set a new Timer
-        timer = new Timer();
+    public void startTimers() {
 
+
+        //set a new Timer
+        timer1 = new Timer();
+        timer2 = new Timer();
         //initialize the TimerTask's job
-        initializeTimerTask();
+        initializeTimerTasks();
 
         //schedule the timer, after the first 5000ms the TimerTask will run every 10000ms
-        timer.schedule(timerTask, 5000, mGPSInterval); //
-
-        new Timer().schedule(new TimerTask() {
-            @Override
-
-            public void run() {
-                // this code will be executed after 2 seconds
-                if(Presenter.remoteIP!=null){
-                    TimeOffsetActivity.getTimeOffset();
-                }
-
-            }
-
-
-        }, 1000, 10000);
+        timer1.schedule(timerTaskLogging, 5000, mGPSInterval); //
+        timer2.schedule(timerTimeOffset, 1000, 10000);
     }
 
     public void stopTimerTask() {
         //stop the timer, if it's not already null
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
+        if (timer1 != null) {
+            timer1.cancel();
+            timer1 = null;
         }
+
+
     }
 
-    public void initializeTimerTask() {
+    public static void stopNTPTask() {
+        System.out.println("stopNTPTask");
+        //stop the timer, if it's not already null
+        if (timer2 != null) {
+            timer2.cancel();
+            timer2 = null;
+        }
+    }
+    public void initializeTimerTasks() {
 
-        timerTask = new TimerTask() {
+        timerTaskLogging = new TimerTask() {
             public void run() {
                 //use a handler to run a toast that shows the current timestamp
                 handler.post(new Runnable() {
@@ -132,9 +135,29 @@ public class csv_logger extends Service {
                         if(isRecording){
                             updateLog();
                         }
+
+//                        if(Presenter.remoteIP!=null){
+//                            NTPClient.getTimeOffset();
+//                        }
                     }
                 });
             }
+        };
+
+        timerTimeOffset = new TimerTask() {
+            @Override
+            public void run() {
+                // this code will be executed after 2 seconds
+                if (Presenter.remoteIP != null) {
+
+                    System.out.println("starting timeoffset task");
+                    NTPClient.getTimeOffset();
+
+                }
+
+            }
+
+
         };
     }
 
@@ -179,7 +202,7 @@ public class csv_logger extends Service {
             date = formatterDate.format(new Date(time));
             String currentTime = formatterTime.format(new Date(time));
 
-//          String record = "event, condition, code, eventText, eventResponse, eventDetails , date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
+//          String record = "event, condition, code, eventText, eventResponse, eventDetails , epoch, date, time, lat, lon, speed, bearing, elevation, accuracy";
 
 
             eventInfo = "GPS" + ", " +
