@@ -23,6 +23,7 @@ import java.util.TimerTask;
 
 import static android.os.SystemClock.elapsedRealtime;
 import static org.urbancortex.presenter.Presenter.isRecording;
+import static org.urbancortex.presenter.Presenter.notes;
 import static org.urbancortex.presenter.Presenter.startMillis;
 import static org.urbancortex.presenter.Presenter.startTime;
 import static org.urbancortex.presenter.Presenter.timeOffset;
@@ -257,6 +258,9 @@ public class csv_logger extends Service {
         String record = "event, condition, code, eventText, eventResponse, eventDetails, epoch, date, time, lat, lon, speed, bearing, elevation, accuracy";
 
         buf.write(record);
+        buf.append("\n");
+
+        buf.write(notes);
         buf.append("\n");
     }
 

@@ -43,7 +43,7 @@ public class Presentation extends Activity  {
 //    implements SensorEventListener
     static long updateUITime;
     Button btn;
-    DecimalFormat df = new DecimalFormat("#.#");
+    DecimalFormat df = new DecimalFormat("#.00");
     SimpleDateFormat formatterDate = new SimpleDateFormat("dd/MM/yyyy");
     SimpleDateFormat formatterTime = new SimpleDateFormat("HH:mm:ss.SSS");
     private ImageView imageView;
@@ -57,12 +57,6 @@ public class Presentation extends Activity  {
     private Button startBtn;
     private Button stopBtn;
     long showStimulus;
-
-    Sensor accelerometer;
-    Sensor magnetometer;
-    private String participantID;
-    SensorManager mSensorManager;
-
 
 
     ServiceConnection mConnection = new ServiceConnection()
@@ -81,7 +75,7 @@ public class Presentation extends Activity  {
             System.out.println("Service is disconnected");
         }
     };
-    private float azimut;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,23 +84,7 @@ public class Presentation extends Activity  {
         System.out.println("onCreate");
 
         // Get the message from the intent
-        participantID = getIntent().getStringExtra(MainActivity.EXTRA_MESSAGE);
         bindService(new Intent(this, csv_logger.class), mConnection, 0);
-
-        mSensorManager = (SensorManager)getSystemService(android.content.Context.SENSOR_SERVICE);
-
-
-
-
-        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-        accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-
-//        SensorManager.getRotationMatrixFromVector(rotationV, rotationVector);
-//        Sensor SensorOrientation = SensorManager.getOrientation(rotationV, orientationValuesV);
-//        mSensorManager.getOrientation(rotationV, orientationValuesV);
-
-        df = new DecimalFormat("#.00");
 
     }
 
@@ -136,6 +114,22 @@ public class Presentation extends Activity  {
         super.onStart();
         System.out.println("onStart "+Presenter.experimentEvents.length);
         setupUI();
+
+
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if(intent.getStringExtra("methodName").equals("updateUI")){
+            try {
+                updateUI();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     protected void onPause()
@@ -156,7 +150,7 @@ public class Presentation extends Activity  {
 
     protected void onResume()
     {
-        System.out.println("onResume");
+        System.out.println("Presentation onResume");
         super.onResume();
 
 //        mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
@@ -269,7 +263,6 @@ public class Presentation extends Activity  {
         {
             updateUITime = SystemClock.elapsedRealtime();
 
-            //  String record = "event, condition, code, eventText, eventResponse, eventDetails , date, time, epoch, lat, lon, speed, bearing, elevation, accuracy";
             //  logEvent(String event, String eventCondition, String eventCode, String eventText, String eventResponse, long elapsedRealTime)
             logEvent("newStim", experimentEvents[index].Condition, experimentEvents[index].Code, experimentEvents[index].Title, "NA", elapsedRealtime());
             lastIndex = Presenter.index;
@@ -320,6 +313,7 @@ public class Presentation extends Activity  {
 
                     @Override
                     public void run() {
+
                         loadNextEvent();
                     }
                 });
@@ -382,11 +376,18 @@ public class Presentation extends Activity  {
             if (SystemClock.elapsedRealtime() - updateUITime < 500) {
                 return;
             }
+
+            final Intent intentToWalking = new Intent(this, WalkingToDestination.class);
             mLastClickTime = SystemClock.elapsedRealtime();
             btn.setClickable(false);
 
             if (response) {
-                if (!buttonText.equals("Back")) {
+                if(buttonText.equals("Start Walking")){
+                    startWalkingToDestination = elapsedRealtime();
+                    startActivity(intentToWalking);
+                    isWalking = true;
+
+                } else if (!buttonText.equals("Back")) {
                     if (experimentEvents[index].Alert) {
                         AlertDialog alertDialog;
                         alertDialog = new AlertDialog.Builder(this)
@@ -428,49 +429,6 @@ public class Presentation extends Activity  {
 
     }
 
-
-
-//    @Override
-//    public boolean dispatchKeyEvent(KeyEvent event) {
-//        int keyCode = event.getKeyCode();
-//        int action = event.getAction();
-//
-//        LinearLayout mainLayout=(LinearLayout)this.findViewById(R.id.mainLayout);
-//        LinearLayout backLayout=(LinearLayout)this.findViewById(R.id.backgroundLayout);
-//
-//        switch (keyCode) {
-//            case KeyEvent.KEYCODE_VOLUME_UP:
-//                if (action == KeyEvent.ACTION_DOWN && !isPressed && isWalking) {
-//
-//                    isPressed = true;
-//                    startShowingMap  = elapsedRealtime();
-//                    mainLayout.setVisibility(View.VISIBLE);
-//                    backLayout.setVisibility(View.GONE);
-//
-//                } else if (action == KeyEvent.ACTION_UP && isWalking) {
-//                    long mapReadingDuration = elapsedRealtime() - startShowingMap;
-//                    startShowingMap=0;
-//                    mainLayout.setVisibility(View.INVISIBLE);
-//                    backLayout.setVisibility(View.VISIBLE);
-//
-//                    try {
-//                        logEvent("hideMap", String.valueOf(mapReadingDuration), "null", elapsedRealtime());
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    } catch (ParseException e) {
-//                        e.printStackTrace();
-//                    }
-//                    isPressed = false;
-//
-//                }
-//                return true;
-//            default:
-//                return super.dispatchKeyEvent(event);
-//        }
-//
-//    }
-
-
     protected void setupUI()
     {
         imageView = ((ImageView)findViewById(R.id.image));
@@ -481,85 +439,7 @@ public class Presentation extends Activity  {
 
     long startWalking = 0;
 
-    public void onTestingClick(View view){
-
-        switch(view.getId())
-        {
-            case R.id.button1:
-                // handle button A click;
-                isWalking = true;
-                startWalking = elapsedRealtime();
-                updateButtonState();
-//                try {
-
-////                    logEvent("startRoute", "null", "null", elapsedRealtime());
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                } catch (ParseException e) {
-//                    e.printStackTrace();
-//                }
-
-
-                break;
-            case R.id.button2:
-                // handle button B click;
-
-                // Confirm this is not accidental
-                new AlertDialog.Builder(this)
-                        .setTitle("Arrived to Destination")
-                        .setMessage("Press to confirm you have arrived at the destination")
-                        .setIcon(0)
-                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // continue with
-                                isWalking = false;
-                                updateButtonState();
-                                long stopWalking = elapsedRealtime();
-                                long walkingTime = stopWalking-startWalking;
-
-//                                try {
-//
-////                                    logEvent("arrived", String.valueOf(walkingTime), "null", stopWalking);
-//                                } catch (IOException e) {
-//                                    e.printStackTrace();
-//                                } catch (ParseException e) {
-//                                    e.printStackTrace();
-//                                }
-
-                            }
-                        })
-                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // do nothing
-                            }
-                        })
-                        .show();
-
-
-                break;
-
-            default:
-                throw new RuntimeException("Unknown button ID");
-        }
-
-    }
-    private void updateButtonState(){
-
-        startBtn = (Button) findViewById(R.id.button1);
-        stopBtn = (Button) findViewById(R.id.button2);
-
-        if(!isWalking){
-            startBtn.setVisibility(View.VISIBLE);
-            stopBtn.setVisibility(View.INVISIBLE);
-        } else {
-            startBtn.setVisibility(View.INVISIBLE);
-            stopBtn.setVisibility(View.VISIBLE);
-        }
-
-    }
-
-
-//    @Override
+//      @Override
 //    public void onAccuracyChanged(Sensor sensor, int i) {
 //
 //    }

@@ -7,6 +7,7 @@ package org.urbancortex.presenter;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.os.Vibrator;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,7 +17,9 @@ import android.widget.TextView;
 import static android.os.SystemClock.elapsedRealtime;
 import org.apache.commons.net.ntp.TimeInfo;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -25,6 +28,8 @@ import static org.urbancortex.presenter.Presenter.*;
 public class TimeOffsetActivity extends Activity {
 
     static TextView offsetAverageText;
+    private Vibrator v;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,10 +46,14 @@ public class TimeOffsetActivity extends Activity {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
         System.out.println(elapsedRealtime());
+        v = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+
 
     }
 
     public void showTimeOffset(View view){
+
+        v.vibrate(20L);
 
             EditText input = (EditText) findViewById(R.id.edit_message);
             if(input!=null && !input.equals("")){
@@ -60,8 +69,23 @@ public class TimeOffsetActivity extends Activity {
         offsetAverageText.setText("Calculating...");
         NTPClient.getTimeOffset();
 
-        offsetAverageText.setText("Offset average is "+Presenter.timeOffset);
+        offsetAverageText.setText("Offset average is " + Presenter.timeOffset);
 
+
+    }
+
+    SimpleDateFormat formatterTime = new SimpleDateFormat("HH:mm:ss.SSS");
+
+    public void takeNote (View view){
+
+        v.vibrate(20L);
+
+        EditText input = (EditText) findViewById(R.id.editInput);
+        if(input!=null && !input.equals("")){
+            String note = input.getText().toString();
+            Presenter.notes = Presenter.notes +" "+note+ " "+formatterTime.format(new Date(System.currentTimeMillis()))+"\n";
+            input.setText("");
+        }
 
     }
 

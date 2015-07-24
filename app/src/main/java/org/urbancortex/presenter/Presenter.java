@@ -29,6 +29,8 @@ public class Presenter
     public static String timeOffset_Array;
     public static int code;
     public static ArrayList<String> EventSpinner;
+    public static long startWalkingToDestination;
+    public static String notes;
 
     public Presenter() {}
 }

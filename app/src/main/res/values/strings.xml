@@ -1,10 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Presenter</string>
 
+    <string name="app_name">Presenter</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_presentation">Presentation</string>
-
     <string name="title_activity_buttons">Buttons</string>
     <string name="edit_message">Enter participant\'s ID</string>
     <string name="button_new">Start new Experiment</string>
@@ -14,11 +14,14 @@
     <string name="button_middle">middle</string>
     <string name="button_right">right</string>
     <string name="stimulus">stimulus</string>
-
     <string name="remote_ip">Remote IP</string>
     <string name="time_offset">Time offset</string>
     <string name="time_offsetAverage">Time offset (average)</string>
     <string name="ntp_instructions">Setup a wifi hotspot from the Android. Connect to it from the laptop/tablet. Enter the remote IP below.</string>
     <string name="event_prompt">event</string>
+    <string name="title_activity_walking_to_destination">WalkingToDestination</string>
+    <string name="arrivedBtn">Arrived</string>
+    <string name="startWalkingBtn">Start Walking</string>
+    <string name="screenText">Press and hold the volume down button (top-left side of the device) to display the destination.</string>
 
 </resources>
