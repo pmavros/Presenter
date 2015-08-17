@@ -19,7 +19,8 @@ android:layout_height="match_parent"
     android:text="Welcome"
     android:id="@+id/textView"
     android:layout_gravity="center_horizontal"
-    android:paddingTop="50dp" />
+    android:paddingTop="20dp"
+    android:visibility="gone" />
 
 <TextView
     android:layout_width="wrap_content"
@@ -29,7 +30,8 @@ android:layout_height="match_parent"
     android:id="@+id/textView2"
     android:layout_gravity="center_horizontal"
     android:textSize="45dp"
-    android:paddingBottom="40dp" />
+    android:paddingBottom="40dp"
+    android:visibility="gone" />
 
 <EditText android:id="@+id/edit_password"
     android:inputType="numberPassword"
@@ -73,10 +75,18 @@ android:layout_height="match_parent"
     android:layout_marginTop="10dp" />
 
     <Spinner
-        android:layout_width="171dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/spinner1"
-        android:prompt="@string/event_prompt"></Spinner>
+        android:id="@+id/spinnerSet"
+        android:prompt="@string/set_prompt"
+        android:paddingTop="20dp"></Spinner>
+
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinnerEvent"
+        android:prompt="@string/event_prompt"
+        android:paddingTop="20dp"></Spinner>
 
 <LinearLayout
     android:orientation="vertical"
@@ -89,7 +99,7 @@ android:layout_height="match_parent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Fieldworker v2.3"
+        android:text="Presenter APP"
         android:layout_gravity="left|bottom|center_horizontal"
         android:textSize="10dp"
         android:gravity="bottom"

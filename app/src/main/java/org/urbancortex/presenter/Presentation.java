@@ -356,7 +356,7 @@ public class Presentation extends Activity  {
 
         btn = ((Button) view);
 
-        v.vibrate(20L);
+
         String buttonText = ((Button) view).getText().toString();
         System.out.println(buttonText);
 
@@ -380,7 +380,8 @@ public class Presentation extends Activity  {
             final Intent intentToWalking = new Intent(this, WalkingToDestination.class);
             mLastClickTime = SystemClock.elapsedRealtime();
             btn.setClickable(false);
-
+            
+            v.vibrate(20L);
             if (response) {
                 if(buttonText.equals("Start Walking")){
                     startWalkingToDestination = elapsedRealtime();

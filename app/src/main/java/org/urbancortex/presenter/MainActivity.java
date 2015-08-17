@@ -75,29 +75,75 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         super.onResume();
 
         // spinner
-        Spinner spinner = (Spinner) (findViewById(R.id.spinner1));
+        Spinner spinnerSets = (Spinner) (findViewById(R.id.spinnerSet));
 
         if (!Presenter.isRecording) {
             ((Button)findViewById(R.id.cont)).setVisibility(View.INVISIBLE);
-            ((Spinner)findViewById(R.id.spinner1)).setVisibility(View.VISIBLE);
+            ((Spinner)findViewById(R.id.spinnerEvent)).setVisibility(View.VISIBLE);
+            ((Spinner)findViewById(R.id.spinnerSet)).setVisibility(View.VISIBLE);
+
         } else if (Presenter.isRecording) {
             ((Button)findViewById(R.id.cont)).setVisibility(View.VISIBLE);
-            ((Spinner)findViewById(R.id.spinner1)).setVisibility(View.INVISIBLE);
+            ((Spinner)findViewById(R.id.spinnerEvent)).setVisibility(View.INVISIBLE);
+            ((Spinner)findViewById(R.id.spinnerSet)).setVisibility(View.INVISIBLE);
+
 
         }
 
+
         if (readWriteSettings.foldersReadyToReadWrite()) {
-            readWriteSettings.loadEventSettings();
+
+            readWriteSettings.loadFilesList();
+
+            // Create an ArrayAdapter using the string array and a default spinner layout
+            ArrayAdapter<String> adapter= new ArrayAdapter<String>(MainActivity.this,android.R.layout.simple_spinner_item, Presenter.filesNames);
+
+            // Specify the layout to use when the list of choices appears
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+            // Apply the adapter to the spinner
+            spinnerSets.setAdapter(adapter);
+
+            spinnerSets.setOnItemSelectedListener(
+                    new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+
+                            System.out.println(Presenter.files.get(i).fileName);
+
+                            if(readWriteSettings.loadEventSettings(i)){
+                                updateEventSpinner();
+                            }
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> adapterView) {
+
+                        }
+                        //add some code here
+                    }
+            );
+
+
+        }
+
+    }
+
+    private void updateEventSpinner() {
+
+        Spinner spinnerEvent = (Spinner) (findViewById(R.id.spinnerEvent));
+
+        if (readWriteSettings.foldersReadyToReadWrite()) {
 
                 // Create an ArrayAdapter using the string array and a default spinner layout
                 ArrayAdapter<String> adapter= new ArrayAdapter<String>(MainActivity.this,android.R.layout.simple_spinner_item, Presenter.EventSpinner);
 
                   // Specify the layout to use when the list of choices appears
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                // Apply the adapter to the spinner
-                spinner.setAdapter(adapter);
-        }
 
+                // Apply the adapter to the spinner
+                spinnerEvent.setAdapter(adapter);
+        }
     }
 
     /** Called when the user clicks the Send button */
@@ -197,7 +243,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
 
 
 //        Presenter.index = 1;
-        Spinner spinner = (Spinner) findViewById(R.id.spinner1);
+        Spinner spinner = (Spinner) findViewById(R.id.spinnerEvent);
         spinner.setOnItemSelectedListener(this);
 
         Presenter.index = 1+ spinner.getSelectedItemPosition();

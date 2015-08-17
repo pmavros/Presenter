@@ -260,8 +260,11 @@ public class csv_logger extends Service {
         buf.write(record);
         buf.append("\n");
 
-        buf.write(notes);
-        buf.append("\n");
+        if(notes!=null){
+            buf.write(notes);
+            buf.append("\n");
+        }
+
     }
 
     /* Checks if external storage is available for read and write */

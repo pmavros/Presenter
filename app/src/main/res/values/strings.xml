@@ -23,5 +23,6 @@
     <string name="arrivedBtn">Arrived</string>
     <string name="startWalkingBtn">Start Walking</string>
     <string name="screenText">Press and hold the volume down button (top-left side of the device) to display the destination.</string>
+    <string name="set_prompt">Choose_set</string>
 
 </resources>

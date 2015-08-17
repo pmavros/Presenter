@@ -21,6 +21,7 @@ public class readWriteSettings
 {
 
     private static int numberOfEvents;
+    static File[] arrayOfFiles;
 
     public readWriteSettings() {}
 
@@ -107,62 +108,83 @@ public class readWriteSettings
         String state = Environment.getExternalStorageState();
         if (Environment.MEDIA_MOUNTED.equals(state)) {
 
-            System.out.println("extenral storage is writable");
+            System.out.println("external storage is writable");
             return true;
         }
         return false;
     }
 
+    public static void loadFilesList() {
+        System.out.println("loadFilesList");
 
-    public static void loadEventSettings() {
+        Presenter.files = new ArrayList<FileSpinner>();
+        Presenter.filesNames = new ArrayList<String>();
+        int compatibleFiles = 0;
 
-        if (foldersReadyToReadWrite())
-        {
-            File[] arrayOfFiles = fileDirectory.listFiles();
+        if (foldersReadyToReadWrite()) {
+           arrayOfFiles = fileDirectory.listFiles();
+
 
             if (arrayOfFiles.length != 0) {
 
-                for (int i = 0; i < arrayOfFiles.length; i++)
-                {
-                    String str1 = arrayOfFiles[i].getName();
-                    if (str1.toString().toLowerCase().equals("presenter_events.csv"))
-                    {
-                        System.out.println("file is " + str1);
-                        String data = getStringFromFile(arrayOfFiles[i]);
-                        String[] arrayOfEvents = makeArray(data);
+                for (int i = 0; i < arrayOfFiles.length; i++) {
 
-                        Presenter.experimentEvents = new Event[numberOfEvents];
-                        Presenter.EventSpinner = new ArrayList<String>();
+                    System.out.println(arrayOfFiles[i].getName());
 
-                        for (int j = 0; j < numberOfEvents; j++)
-                        {
+                    if (arrayOfFiles[i].getName().toString().toLowerCase().contains("presenter_events")) {
 
-                            String[] arrayOfColumns = arrayOfEvents[j].split(",");
-                            //System.out.println(arrayOfColumns.length);
+                        System.out.println(arrayOfFiles[i].getName());
+                        compatibleFiles++;
 
-                            System.out.println(j+ "arrayOfColumns[5]"+arrayOfColumns[5]);
-
-                            if (arrayOfColumns.length == 9)
-                            {
-                                Event[] arrayOfEvent = Presenter.experimentEvents;
-
-//                                new Event(condition, code, title, text, buttons[3], img, alert);
-                                arrayOfEvent[j] = new Event(arrayOfColumns[0], // condition
-                                        arrayOfColumns[1], // code
-                                        arrayOfColumns[2], // title
-                                        arrayOfColumns[3], // text
-                                        new String[]{arrayOfColumns[5],arrayOfColumns[6],arrayOfColumns[7]}, // buttons
-                                        arrayOfColumns[4], // img
-                                        arrayOfColumns[8].equals("yes"));// alert
-
-                                Presenter.EventSpinner.add(arrayOfColumns[0]);
-                            }
-                        }
-                        Presenter.EventSpinner.remove(0);
+                        Presenter.files.add(new FileSpinner(arrayOfFiles[i].getName().toString(), arrayOfFiles[i].getAbsoluteFile()));
+                        Presenter.filesNames.add(arrayOfFiles[i].getName().toString());
                     }
                 }
             }
         }
+    }
+
+    public static boolean loadEventSettings(int i) {
+        System.out.println("load event settings");
+
+        if (foldersReadyToReadWrite())
+        {
+            Presenter.EventSpinner = new ArrayList<String>();
+
+            System.out.println("file is " + Presenter.files.get(i).fileName);
+            String data = getStringFromFile(Presenter.files.get(i).fileAddress);
+            String[] arrayOfEvents = makeArray(data);
+
+            Presenter.experimentEvents = new Event[numberOfEvents];
+            Presenter.EventSpinner = new ArrayList<String>();
+
+            for (int j = 0; j < numberOfEvents; j++)
+            {
+
+                String[] arrayOfColumns = arrayOfEvents[j].split(",");
+                System.out.println("arrayOfColumns.length "+ arrayOfColumns.length);
+
+                if (arrayOfColumns.length == 9)
+                {
+                    Event[] arrayOfEvent = Presenter.experimentEvents;
+
+//                                new Event(condition, code, title, text, buttons[3], img, alert);
+                    arrayOfEvent[j] = new Event(arrayOfColumns[0], // condition
+                            arrayOfColumns[1], // code
+                            arrayOfColumns[2], // title
+                            arrayOfColumns[3], // text
+                            new String[]{arrayOfColumns[5],arrayOfColumns[6],arrayOfColumns[7]}, // buttons
+                            arrayOfColumns[4], // img
+                            arrayOfColumns[8].equals("yes")); // confirm before go to next event
+                }
+
+                Presenter.EventSpinner.add(arrayOfColumns[0]);
+
+            }
+            Presenter.EventSpinner.remove(0);
+            return true;
+        }
+        return false;
     }
 
     protected static String[] makeArray(String paramString)

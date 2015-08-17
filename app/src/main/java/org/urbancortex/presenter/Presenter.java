@@ -31,6 +31,9 @@ public class Presenter
     public static ArrayList<String> EventSpinner;
     public static long startWalkingToDestination;
     public static String notes;
+    public static ArrayList<FileSpinner> files;
+    public static ArrayList<String> filesNames;
+//    public static String EventsFile;
 
     public Presenter() {}
 }
